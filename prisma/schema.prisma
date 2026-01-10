@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Race {
+  id         String       @id @default(cuid())
+  name       String
+  date       String
+  venue      String
+  raceNumber Int
+  createdAt  DateTime     @default(now())
+  horses     Horse[]
+  predictions Prediction[]
+}
+
+model Horse {
+  id       Int    @id @default(autoincrement())
+  raceId   String
+  number   Int
+  name     String
+  race     Race   @relation(fields: [raceId], references: [id], onDelete: Cascade)
+
+  honmeiPredictions Prediction[] @relation("HonmeiHorse")
+  taikouPredictions Prediction[] @relation("TaikouHorse")
+  tananaPredictions Prediction[] @relation("TananaHorse")
+  renkaPredictions  Prediction[] @relation("RenkaHorse")
+}
+
+model Prediction {
+  id        Int      @id @default(autoincrement())
+  raceId    String
+  token     String
+  nickname  String
+  honmeiId  Int
+  taikouId  Int
+  tananaId  Int
+  renkaId   Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  race    Race  @relation(fields: [raceId], references: [id], onDelete: Cascade)
+  honmei  Horse @relation("HonmeiHorse", fields: [honmeiId], references: [id])
+  taikou  Horse @relation("TaikouHorse", fields: [taikouId], references: [id])
+  tanana  Horse @relation("TananaHorse", fields: [tananaId], references: [id])
+  renka   Horse @relation("RenkaHorse", fields: [renkaId], references: [id])
+
+  @@unique([raceId, token])
+}
