@@ -6,10 +6,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
+// __DATASOURCE_PLACEHOLDER__
 
 // ============================================
 // ユーザー・認証

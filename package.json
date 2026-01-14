@@ -5,8 +5,13 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "prisma generate && tsc",
-    "start": "prisma db push && node dist/index.js",
+    "start": "node dist/index.js",
     "postinstall": "prisma generate",
+    "db:generate-schema": "ts-node scripts/generate-schema.ts",
+    "db:setup": "npm run db:generate-schema && prisma generate && prisma db push",
+    "db:migrate": "npm run db:generate-schema && prisma generate && prisma migrate deploy",
+    "db:reset": "npm run db:generate-schema && prisma db push --force-reset",
+    "fetch-races": "ts-node src/scripts/fetchRaces.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -15,16 +20,20 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "cheerio": "^1.1.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "iconv-lite": "^0.7.2",
     "nanoid": "^3.3.11"
   },
   "devDependencies": {
+    "@types/cheerio": "^0.22.35",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.0.5",
     "prisma": "^5.22.0",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
   }
