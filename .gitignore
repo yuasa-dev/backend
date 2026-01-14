@@ -3,3 +3,11 @@ node_modules
 .env
 
 /src/generated/prisma
+
+# Prisma schema is generated based on DATABASE_URL
+# Use schema.base.prisma as the source of truth
+prisma/schema.prisma
+
+# SQLite database files
+*.db
+*.db-journal

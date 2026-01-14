@@ -4,10 +4,10 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "prisma generate && tsc",
+    "build": "npm run db:generate-schema && prisma generate && tsc",
     "start": "node dist/index.js",
-    "postinstall": "prisma generate",
-    "db:generate-schema": "ts-node scripts/generate-schema.ts",
+    "postinstall": "node scripts/postinstall.js",
+    "db:generate-schema": "node scripts/generate-schema.js",
     "db:setup": "npm run db:generate-schema && prisma generate && prisma db push",
     "db:migrate": "npm run db:generate-schema && prisma generate && prisma migrate deploy",
     "db:reset": "npm run db:generate-schema && prisma db push --force-reset",

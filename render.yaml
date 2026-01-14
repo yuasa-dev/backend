@@ -2,10 +2,10 @@ services:
   - type: web
     name: keiba-api
     runtime: node
-    buildCommand: npm install && npx prisma generate && npm run build
+    buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:
       - key: DATABASE_URL
-        value: file:./prisma/dev.db
+        sync: false  # Render Dashboard で設定
       - key: NODE_ENV
         value: production
