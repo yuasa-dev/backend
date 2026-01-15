@@ -11,6 +11,7 @@ async function saveRace(race: ScrapedRace): Promise<string> {
   const result = await prisma.externalRace.upsert({
     where: { externalId: race.externalId },
     update: {
+      venue: race.venue,
       raceName: race.raceName,
       postTime: race.postTime,
       distance: race.distance,
