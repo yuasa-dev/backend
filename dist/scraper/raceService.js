@@ -91,9 +91,9 @@ async function saveHorses(raceId, horses) {
         }
     }
 }
-// 指定日のレース情報を取得してDBに保存
+// 指定日のレース情報を取得してDBに保存（dateはYYYY-MM-DD形式）
 async function fetchAndSaveRaces(date) {
-    console.log(`\n=== Fetching races for ${date.toISOString().split('T')[0]} ===\n`);
+    console.log(`\n=== Fetching races for ${date} ===\n`);
     let raceCount = 0;
     let horseCount = 0;
     // レース一覧を取得

@@ -509,8 +509,7 @@ app.post('/api/races/fetch', async (req, res) => {
         .json({ error: '日付はYYYY-MM-DD形式で指定してください' });
     }
 
-    const targetDate = new Date(date);
-    const result = await fetchAndSaveRaces(targetDate);
+    const result = await fetchAndSaveRaces(date);
 
     return res.json({
       success: true,

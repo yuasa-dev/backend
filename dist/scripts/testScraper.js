@@ -7,11 +7,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const fetchRaceList_1 = require("../scraper/fetchRaceList");
 async function main() {
-    const arg = process.argv[2] || '2025-01-12'; // デフォルトは開催日がある日付
-    console.log(`テスト日付: ${arg}`);
+    const dateStr = process.argv[2] || '2025-01-12'; // デフォルトは開催日がある日付
+    console.log(`テスト日付: ${dateStr}`);
     try {
-        const targetDate = new Date(arg);
-        const venues = await (0, fetchRaceList_1.fetchRaceList)(targetDate);
+        const venues = await (0, fetchRaceList_1.fetchRaceList)(dateStr);
         console.log('\n=== 結果 ===');
         console.log(`競馬場数: ${venues.length}`);
         for (const venue of venues) {

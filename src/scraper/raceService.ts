@@ -94,13 +94,13 @@ async function saveHorses(raceId: string, horses: ScrapedHorse[]): Promise<void>
   }
 }
 
-// 指定日のレース情報を取得してDBに保存
-export async function fetchAndSaveRaces(date: Date): Promise<{
+// 指定日のレース情報を取得してDBに保存（dateはYYYY-MM-DD形式）
+export async function fetchAndSaveRaces(date: string): Promise<{
   venueCount: number;
   raceCount: number;
   horseCount: number;
 }> {
-  console.log(`\n=== Fetching races for ${date.toISOString().split('T')[0]} ===\n`);
+  console.log(`\n=== Fetching races for ${date} ===\n`);
 
   let raceCount = 0;
   let horseCount = 0;

@@ -3,20 +3,9 @@ import { ScrapedRace, VenueRaces } from './types';
 
 const BASE_URL = 'https://race.netkeiba.com';
 
-// 日付をYYYYMMDD形式に変換
-function formatDateParam(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}${month}${day}`;
-}
-
-// 日付をYYYY-MM-DD形式に変換
-function formatDateISO(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+// YYYY-MM-DD形式をYYYYMMDD形式に変換
+function formatDateParam(dateStr: string): string {
+  return dateStr.replace(/-/g, '');
 }
 
 // 距離とコースタイプを解析（例: "ダ1200m" → { distance: 1200, surface: "ダート" }）
@@ -48,10 +37,9 @@ function extractRaceId(href: string): string | null {
   return match ? match[1] : null;
 }
 
-// 指定日のレース一覧を取得
-export async function fetchRaceList(date: Date): Promise<VenueRaces[]> {
+// 指定日のレース一覧を取得（dateはYYYY-MM-DD形式）
+export async function fetchRaceList(date: string): Promise<VenueRaces[]> {
   const dateParam = formatDateParam(date);
-  const dateISO = formatDateISO(date);
   const url = `${BASE_URL}/top/race_list_sub.html?kaisai_date=${dateParam}`;
 
   console.log(`Fetching race list: ${url}`);
@@ -117,7 +105,7 @@ export async function fetchRaceList(date: Date): Promise<VenueRaces[]> {
 
       races.push({
         externalId,
-        date: dateISO,
+        date: date,
         venue: venueText,
         raceNumber,
         raceName,

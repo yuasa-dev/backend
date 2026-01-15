@@ -7,13 +7,12 @@
 import { fetchRaceList } from '../scraper/fetchRaceList';
 
 async function main() {
-  const arg = process.argv[2] || '2025-01-12'; // デフォルトは開催日がある日付
+  const dateStr = process.argv[2] || '2025-01-12'; // デフォルトは開催日がある日付
 
-  console.log(`テスト日付: ${arg}`);
+  console.log(`テスト日付: ${dateStr}`);
 
   try {
-    const targetDate = new Date(arg);
-    const venues = await fetchRaceList(targetDate);
+    const venues = await fetchRaceList(dateStr);
 
     console.log('\n=== 結果 ===');
     console.log(`競馬場数: ${venues.length}`);

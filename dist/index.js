@@ -435,8 +435,7 @@ app.post('/api/races/fetch', async (req, res) => {
                 .status(400)
                 .json({ error: '日付はYYYY-MM-DD形式で指定してください' });
         }
-        const targetDate = new Date(date);
-        const result = await (0, scraper_1.fetchAndSaveRaces)(targetDate);
+        const result = await (0, scraper_1.fetchAndSaveRaces)(date);
         return res.json({
             success: true,
             date,

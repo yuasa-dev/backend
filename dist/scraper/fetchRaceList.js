@@ -36,19 +36,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchRaceList = fetchRaceList;
 const cheerio = __importStar(require("cheerio"));
 const BASE_URL = 'https://race.netkeiba.com';
-// 日付をYYYYMMDD形式に変換
-function formatDateParam(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}${month}${day}`;
-}
-// 日付をYYYY-MM-DD形式に変換
-function formatDateISO(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+// YYYY-MM-DD形式をYYYYMMDD形式に変換
+function formatDateParam(dateStr) {
+    return dateStr.replace(/-/g, '');
 }
 // 距離とコースタイプを解析（例: "ダ1200m" → { distance: 1200, surface: "ダート" }）
 function parseDistanceInfo(text) {
@@ -75,10 +65,9 @@ function extractRaceId(href) {
     const match = href.match(/race_id=(\d+)/);
     return match ? match[1] : null;
 }
-// 指定日のレース一覧を取得
+// 指定日のレース一覧を取得（dateはYYYY-MM-DD形式）
 async function fetchRaceList(date) {
     const dateParam = formatDateParam(date);
-    const dateISO = formatDateISO(date);
     const url = `${BASE_URL}/top/race_list_sub.html?kaisai_date=${dateParam}`;
     console.log(`Fetching race list: ${url}`);
     const response = await fetch(url, {
@@ -129,7 +118,7 @@ async function fetchRaceList(date) {
             const headCount = parseHeadCount(headCountText);
             races.push({
                 externalId,
-                date: dateISO,
+                date: date,
                 venue: venueText,
                 raceNumber,
                 raceName,
