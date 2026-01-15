@@ -391,6 +391,36 @@ app.get('/api/races/:id', async (req, res) => {
         return res.status(500).json({ error: 'レース情報の取得に失敗しました' });
     }
 });
+// DELETE /api/races/cleanup - 文字化けしたレースを削除
+app.delete('/api/races/cleanup', async (req, res) => {
+    try {
+        const { date } = req.body;
+        if (!date || typeof date !== 'string') {
+            return res
+                .status(400)
+                .json({ error: '日付を指定してください（YYYY-MM-DD形式）' });
+        }
+        // 文字化けしたレースを検出（正常な日本語の会場名パターンにマッチしないもの）
+        const validVenuePattern = /^[0-9]+回\s*(中山|東京|阪神|京都|中京|小倉|新潟|福島|札幌|函館)/;
+        const races = await repositories_1.raceRepository.findByDate(date);
+        const corruptedRaces = races.filter(race => !validVenuePattern.test(race.venue));
+        let deletedCount = 0;
+        for (const race of corruptedRaces) {
+            await repositories_1.raceRepository.delete(race.id);
+            deletedCount++;
+        }
+        return res.json({
+            success: true,
+            date,
+            deletedCount,
+            deletedRaces: corruptedRaces.map(r => ({ id: r.id, venue: r.venue, raceName: r.raceName })),
+        });
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'レースの削除に失敗しました' });
+    }
+});
 // POST /api/races/fetch - 指定日のレース情報をスクレイピング
 app.post('/api/races/fetch', async (req, res) => {
     try {

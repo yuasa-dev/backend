@@ -139,6 +139,24 @@ export class RaceRepository {
   }
 
   /**
+   * レースを削除（関連する馬情報も削除）
+   */
+  async delete(id: string) {
+    // 先に馬情報を削除
+    await prisma.externalHorse.deleteMany({
+      where: { raceId: id },
+    });
+    // 予想も削除
+    await prisma.prediction.deleteMany({
+      where: { raceId: id },
+    });
+    // レースを削除
+    return prisma.externalRace.delete({
+      where: { id },
+    });
+  }
+
+  /**
    * 馬情報を更新（upsert）
    */
   async upsertHorses(raceId: string, horses: CreateHorseInput[]) {
