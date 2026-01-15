@@ -64,16 +64,29 @@ export async function fetchShutuba(raceId: string): Promise<ScrapedHorse[]> {
   $('.HorseList').each((_, row) => {
     const $row = $(row);
 
-    // 馬番を取得（Umaban + 数字のクラス形式: Umaban1, Umaban2...）
-    const umabanTd = $row.find('td[class*="Umaban"]');
-    const number = parseInt(umabanTd.text().trim(), 10);
-
-    if (isNaN(number)) return; // ヘッダー行などをスキップ
-
-    // 馬名を取得
+    // 馬名を取得（馬名がなければスキップ）
     const horseName = $row.find('.HorseName a').first().text().trim();
-
     if (!horseName) return;
+
+    // 馬番を取得
+    // 1. まずtd.Umabanのテキストから取得を試みる
+    const umabanTd = $row.find('td[class*="Umaban"]');
+    let number = parseInt(umabanTd.text().trim(), 10);
+
+    // 2. 馬番が空の場合（枠順未確定時）はtr要素のid属性から取得
+    // 例: id="tr_14" → 馬番14
+    if (isNaN(number)) {
+      const trId = $row.attr('id');
+      if (trId) {
+        const idMatch = trId.match(/tr_(\d+)/);
+        if (idMatch) {
+          number = parseInt(idMatch[1], 10);
+        }
+      }
+    }
+
+    // それでも馬番が取得できない場合はスキップ
+    if (isNaN(number)) return;
 
     // 騎手名を取得
     const jockeyName = $row.find('.Jockey a').first().text().trim() || undefined;

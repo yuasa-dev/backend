@@ -1,5 +1,4 @@
 import * as cheerio from 'cheerio';
-import * as iconv from 'iconv-lite';
 import { ScrapedRace, VenueRaces } from './types';
 
 const BASE_URL = 'https://race.netkeiba.com';
@@ -69,9 +68,8 @@ export async function fetchRaceList(date: Date): Promise<VenueRaces[]> {
     throw new Error(`Failed to fetch race list: ${response.status}`);
   }
 
-  // EUC-JP からUTF-8に変換
-  const buffer = await response.arrayBuffer();
-  const html = iconv.decode(Buffer.from(buffer), 'EUC-JP');
+  // race_list_sub.htmlはUTF-8で配信される
+  const html = await response.text();
   const $ = cheerio.load(html);
 
   const venueRaces: VenueRaces[] = [];

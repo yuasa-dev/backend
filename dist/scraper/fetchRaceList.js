@@ -35,7 +35,6 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchRaceList = fetchRaceList;
 const cheerio = __importStar(require("cheerio"));
-const iconv = __importStar(require("iconv-lite"));
 const BASE_URL = 'https://race.netkeiba.com';
 // 日付をYYYYMMDD形式に変換
 function formatDateParam(date) {
@@ -92,9 +91,8 @@ async function fetchRaceList(date) {
     if (!response.ok) {
         throw new Error(`Failed to fetch race list: ${response.status}`);
     }
-    // EUC-JP からUTF-8に変換
-    const buffer = await response.arrayBuffer();
-    const html = iconv.decode(Buffer.from(buffer), 'EUC-JP');
+    // race_list_sub.htmlはUTF-8で配信される
+    const html = await response.text();
     const $ = cheerio.load(html);
     const venueRaces = [];
     // 各競馬場のセクションを取得

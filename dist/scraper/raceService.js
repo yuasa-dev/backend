@@ -36,37 +36,58 @@ async function saveRace(race) {
     });
     return result.id;
 }
-// 出走馬情報をDBに保存（upsert）
+// 出走馬情報をDBに保存（馬名で照合して馬番を更新）
 async function saveHorses(raceId, horses) {
+    // 既存の馬データを取得
+    const existingHorses = await prisma.externalHorse.findMany({
+        where: { raceId },
+    });
+    // 馬名でマップを作成
+    const existingByName = new Map(existingHorses.map((h) => [h.name, h]));
+    const scrapedNames = new Set(horses.map((h) => h.name));
     for (const horse of horses) {
-        await prisma.externalHorse.upsert({
-            where: {
-                raceId_number: {
+        const existing = existingByName.get(horse.name);
+        if (existing) {
+            // 既存の馬を更新（馬番が変わっていても馬名で照合して更新）
+            await prisma.externalHorse.update({
+                where: { id: existing.id },
+                data: {
+                    number: horse.number,
+                    jockeyName: horse.jockeyName,
+                    trainerName: horse.trainerName,
+                    weight: horse.weight,
+                    weightDiff: horse.weightDiff,
+                    age: horse.age,
+                    sex: horse.sex,
+                    scratched: false,
+                },
+            });
+        }
+        else {
+            // 新しい馬を作成
+            await prisma.externalHorse.create({
+                data: {
                     raceId,
                     number: horse.number,
+                    name: horse.name,
+                    jockeyName: horse.jockeyName,
+                    trainerName: horse.trainerName,
+                    weight: horse.weight,
+                    weightDiff: horse.weightDiff,
+                    age: horse.age,
+                    sex: horse.sex,
                 },
-            },
-            update: {
-                name: horse.name,
-                jockeyName: horse.jockeyName,
-                trainerName: horse.trainerName,
-                weight: horse.weight,
-                weightDiff: horse.weightDiff,
-                age: horse.age,
-                sex: horse.sex,
-            },
-            create: {
-                raceId,
-                number: horse.number,
-                name: horse.name,
-                jockeyName: horse.jockeyName,
-                trainerName: horse.trainerName,
-                weight: horse.weight,
-                weightDiff: horse.weightDiff,
-                age: horse.age,
-                sex: horse.sex,
-            },
-        });
+            });
+        }
+    }
+    // スクレイピングデータにない馬は出走取消としてマーク
+    for (const existing of existingHorses) {
+        if (!scrapedNames.has(existing.name)) {
+            await prisma.externalHorse.update({
+                where: { id: existing.id },
+                data: { scratched: true },
+            });
+        }
     }
 }
 // 指定日のレース情報を取得してDBに保存
