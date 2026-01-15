@@ -492,6 +492,36 @@ app.delete('/api/races/cleanup', async (req, res) => {
   }
 });
 
+// DELETE /api/races/delete-by-date - 指定日のレースをすべて削除
+app.delete('/api/races/delete-by-date', async (req, res) => {
+  try {
+    const { date } = req.body;
+
+    if (!date || typeof date !== 'string') {
+      return res
+        .status(400)
+        .json({ error: '日付を指定してください（YYYY-MM-DD形式）' });
+    }
+
+    const races = await raceRepository.findByDate(date);
+
+    let deletedCount = 0;
+    for (const race of races) {
+      await raceRepository.delete(race.id);
+      deletedCount++;
+    }
+
+    return res.json({
+      success: true,
+      date,
+      deletedCount,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'レースの削除に失敗しました' });
+  }
+});
+
 // POST /api/races/fetch - 指定日のレース情報をスクレイピング
 app.post('/api/races/fetch', async (req, res) => {
   try {
