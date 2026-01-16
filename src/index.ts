@@ -641,7 +641,7 @@ app.post('/api/races/:id/predictions', async (req, res) => {
     }
 
     const { id } = req.params;
-    const { groupId, honmei, taikou, tanana, renka, ana, comment } = req.body;
+    const { groupId, honmei, taikou, tanana, renka, ana, jiku, osae, comment } = req.body;
 
     // レース存在確認
     const race = await raceRepository.findById(id);
@@ -649,7 +649,7 @@ app.post('/api/races/:id/predictions', async (req, res) => {
       return res.status(404).json({ error: 'レースが見つかりません' });
     }
 
-    // renka, ana を文字列に変換
+    // renka, ana, jiku, osae を文字列に変換
     const renkaStr =
       Array.isArray(renka) && renka.length > 0
         ? renka.filter((n: number) => typeof n === 'number').join(',')
@@ -657,6 +657,14 @@ app.post('/api/races/:id/predictions', async (req, res) => {
     const anaStr =
       Array.isArray(ana) && ana.length > 0
         ? ana.filter((n: number) => typeof n === 'number').join(',')
+        : null;
+    const jikuStr =
+      Array.isArray(jiku) && jiku.length > 0
+        ? jiku.filter((n: number) => typeof n === 'number').join(',')
+        : null;
+    const osaeStr =
+      Array.isArray(osae) && osae.length > 0
+        ? osae.filter((n: number) => typeof n === 'number').join(',')
         : null;
 
     // RLS: 自分の予想のみ操作可能（upsertでグループメンバー確認も実施）
@@ -670,6 +678,8 @@ app.post('/api/races/:id/predictions', async (req, res) => {
         tanana: tanana || null,
         renka: renkaStr,
         ana: anaStr,
+        jiku: jikuStr,
+        osae: osaeStr,
         comment: comment || null,
       });
     } catch (err) {
