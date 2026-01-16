@@ -36,33 +36,33 @@ async function saveRace(race: ScrapedRace): Promise<string> {
   return result.id;
 }
 
-// 出走馬情報をDBに保存（馬名で照合して馬番を更新）
+// 出走馬情報をDBに保存（馬番で照合して更新）
 async function saveHorses(raceId: string, horses: ScrapedHorse[]): Promise<void> {
   // 既存の馬データを取得
   const existingHorses = await prisma.externalHorse.findMany({
     where: { raceId },
   });
 
-  // 馬名でマップを作成
-  const existingByName = new Map(existingHorses.map((h) => [h.name, h]));
-  const scrapedNames = new Set(horses.map((h) => h.name));
+  // 馬番でマップを作成
+  const existingByNumber = new Map(existingHorses.map((h) => [h.number, h]));
+  const scrapedNumbers = new Set(horses.map((h) => h.number));
 
   for (const horse of horses) {
-    const existing = existingByName.get(horse.name);
+    const existing = existingByNumber.get(horse.number);
 
     if (existing) {
-      // 既存の馬を更新（馬番が変わっていても馬名で照合して更新）
+      // 既存の馬を更新（馬番で照合）
       await prisma.externalHorse.update({
         where: { id: existing.id },
         data: {
-          number: horse.number,
+          name: horse.name,
           jockeyName: horse.jockeyName,
           trainerName: horse.trainerName,
           weight: horse.weight,
           weightDiff: horse.weightDiff,
           age: horse.age,
           sex: horse.sex,
-          scratched: false,
+          scratched: horse.scratched || false,
         },
       });
     } else {
@@ -78,14 +78,15 @@ async function saveHorses(raceId: string, horses: ScrapedHorse[]): Promise<void>
           weightDiff: horse.weightDiff,
           age: horse.age,
           sex: horse.sex,
+          scratched: horse.scratched || false,
         },
       });
     }
   }
 
-  // スクレイピングデータにない馬は出走取消としてマーク
+  // スクレイピングデータにない馬番は出走取消としてマーク
   for (const existing of existingHorses) {
-    if (!scrapedNames.has(existing.name)) {
+    if (!scrapedNumbers.has(existing.number)) {
       await prisma.externalHorse.update({
         where: { id: existing.id },
         data: { scratched: true },

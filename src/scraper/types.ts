@@ -22,6 +22,7 @@ export interface ScrapedHorse {
   weightDiff?: number;     // 馬体重増減
   age?: number;            // 馬齢
   sex?: string;            // 性別
+  scratched?: boolean;     // 出走取消
 }
 
 export interface VenueRaces {
