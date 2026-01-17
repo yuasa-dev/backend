@@ -42,17 +42,14 @@ function generateDatasourceBlock(provider) {
 function main() {
   const databaseUrl = process.env.DATABASE_URL;
 
+  // DATABASE_URLがない場合はPostgreSQLをデフォルトで使用（本番環境用）
+  let provider;
   if (!databaseUrl) {
-    console.error('Error: DATABASE_URL environment variable is not set.');
-    console.error('Please set DATABASE_URL in .env file or environment.');
-    console.error('');
-    console.error('Examples:');
-    console.error('  SQLite:     DATABASE_URL="file:./dev.db"');
-    console.error('  PostgreSQL: DATABASE_URL="postgresql://user:pass@host:5432/dbname"');
-    process.exit(1);
+    console.log('DATABASE_URL not set, using postgresql as default provider.');
+    provider = 'postgresql';
+  } else {
+    provider = detectProvider(databaseUrl);
   }
-
-  const provider = detectProvider(databaseUrl);
   console.log(`Detected database provider: ${provider}`);
 
   // ベーススキーマを読み込み
