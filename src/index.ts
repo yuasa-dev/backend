@@ -22,6 +22,46 @@ app.use(cors());
 app.use(express.json());
 
 // ============================================
+// レート制限（レース情報更新用）
+// ============================================
+
+// 日付ごとの最終更新時刻を保存（メモリ内）
+const lastFetchTime: Map<string, Date> = new Map();
+const FETCH_RATE_LIMIT_MINUTES = 10;
+
+/**
+ * レート制限をチェック
+ * @returns null: 制限なし、Date: 次に更新可能な時刻
+ */
+function checkRateLimit(date: string): Date | null {
+  const lastTime = lastFetchTime.get(date);
+  if (!lastTime) return null;
+
+  const now = new Date();
+  const diffMs = now.getTime() - lastTime.getTime();
+  const limitMs = FETCH_RATE_LIMIT_MINUTES * 60 * 1000;
+
+  if (diffMs < limitMs) {
+    return new Date(lastTime.getTime() + limitMs);
+  }
+  return null;
+}
+
+/**
+ * 最終更新時刻を記録
+ */
+function recordFetchTime(date: string): void {
+  lastFetchTime.set(date, new Date());
+}
+
+/**
+ * 指定日の最終更新時刻を取得
+ */
+function getLastFetchTime(date: string): Date | null {
+  return lastFetchTime.get(date) || null;
+}
+
+// ============================================
 // ヘルパー関数
 // ============================================
 
@@ -522,6 +562,42 @@ app.delete('/api/races/delete-by-date', async (req, res) => {
   }
 });
 
+// GET /api/races/fetch-status?date=YYYY-MM-DD - 更新状態を取得
+app.get('/api/races/fetch-status', async (req, res) => {
+  try {
+    const { date } = req.query;
+
+    if (!date || typeof date !== 'string') {
+      return res
+        .status(400)
+        .json({ error: '日付を指定してください（YYYY-MM-DD形式）' });
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return res
+        .status(400)
+        .json({ error: '日付はYYYY-MM-DD形式で指定してください' });
+    }
+
+    const lastTime = getLastFetchTime(date);
+    const nextAvailable = checkRateLimit(date);
+
+    return res.json({
+      date,
+      lastFetchTime: lastTime?.toISOString() || null,
+      canFetch: !nextAvailable,
+      nextAvailableTime: nextAvailable?.toISOString() || null,
+      retryAfterSeconds: nextAvailable
+        ? Math.ceil((nextAvailable.getTime() - Date.now()) / 1000)
+        : 0,
+      rateLimitMinutes: FETCH_RATE_LIMIT_MINUTES,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: '更新状態の取得に失敗しました' });
+  }
+});
+
 // POST /api/races/fetch - 指定日のレース情報をスクレイピング
 app.post('/api/races/fetch', async (req, res) => {
   try {
@@ -539,12 +615,29 @@ app.post('/api/races/fetch', async (req, res) => {
         .json({ error: '日付はYYYY-MM-DD形式で指定してください' });
     }
 
+    // レート制限チェック
+    const nextAvailable = checkRateLimit(date);
+    if (nextAvailable) {
+      const lastTime = getLastFetchTime(date);
+      return res.status(429).json({
+        error: `レース情報の更新は${FETCH_RATE_LIMIT_MINUTES}分に1回までです`,
+        lastFetchTime: lastTime?.toISOString(),
+        nextAvailableTime: nextAvailable.toISOString(),
+        retryAfterSeconds: Math.ceil((nextAvailable.getTime() - Date.now()) / 1000),
+      });
+    }
+
     const result = await fetchAndSaveRaces(date);
+
+    // 最終更新時刻を記録
+    recordFetchTime(date);
+    const lastTime = getLastFetchTime(date);
 
     return res.json({
       success: true,
       date,
       ...result,
+      lastFetchTime: lastTime?.toISOString(),
     });
   } catch (error) {
     console.error(error);
