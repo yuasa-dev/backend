@@ -36,26 +36,26 @@ async function saveRace(race: ScrapedRace): Promise<string> {
   return result.id;
 }
 
-// 出走馬情報をDBに保存（馬番で照合して更新）
+// 出走馬情報をDBに保存（馬名で照合して更新 - 馬番変更に対応）
 async function saveHorses(raceId: string, horses: ScrapedHorse[]): Promise<void> {
   // 既存の馬データを取得
   const existingHorses = await prisma.externalHorse.findMany({
     where: { raceId },
   });
 
-  // 馬番でマップを作成
-  const existingByNumber = new Map(existingHorses.map((h) => [h.number, h]));
-  const scrapedNumbers = new Set(horses.map((h) => h.number));
+  // 馬名でマップを作成（馬名で照合するため）
+  const existingByName = new Map(existingHorses.map((h) => [h.name, h]));
+  const scrapedNames = new Set(horses.map((h) => h.name));
 
   for (const horse of horses) {
-    const existing = existingByNumber.get(horse.number);
+    const existing = existingByName.get(horse.name);
 
     if (existing) {
-      // 既存の馬を更新（馬番で照合）
+      // 既存の馬を更新（馬名で照合、馬番も更新）
       await prisma.externalHorse.update({
         where: { id: existing.id },
         data: {
-          name: horse.name,
+          number: horse.number, // 馬番が変わっていたら更新
           jockeyName: horse.jockeyName,
           trainerName: horse.trainerName,
           weight: horse.weight,
@@ -67,6 +67,16 @@ async function saveHorses(raceId: string, horses: ScrapedHorse[]): Promise<void>
       });
     } else {
       // 新しい馬を作成
+      // ただし、同じ馬番が既に存在する場合は先に削除（馬番ユニーク制約対応）
+      const conflicting = existingHorses.find(
+        (h) => h.number === horse.number && !scrapedNames.has(h.name)
+      );
+      if (conflicting) {
+        await prisma.externalHorse.delete({
+          where: { id: conflicting.id },
+        });
+      }
+
       await prisma.externalHorse.create({
         data: {
           raceId,
@@ -84,9 +94,9 @@ async function saveHorses(raceId: string, horses: ScrapedHorse[]): Promise<void>
     }
   }
 
-  // スクレイピングデータにない馬番は出走取消としてマーク
+  // スクレイピングデータにない馬名は出走取消としてマーク
   for (const existing of existingHorses) {
-    if (!scrapedNumbers.has(existing.number)) {
+    if (!scrapedNames.has(existing.name)) {
       await prisma.externalHorse.update({
         where: { id: existing.id },
         data: { scratched: true },

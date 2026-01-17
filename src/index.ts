@@ -709,6 +709,7 @@ app.get('/api/races/:id/predictions', async (req, res) => {
       horses: race.horses
         .filter((h) => !h.scratched)
         .map((h) => ({
+          id: h.id,  // 馬ID（予想の紐づけに使用）
           number: h.number,
           name: h.name,
           jockeyName: h.jockeyName,
