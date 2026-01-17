@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "npm run db:generate-schema && prisma generate && tsc",
-    "start": "node dist/index.js",
+    "start": "prisma generate && node dist/index.js",
     "postinstall": "node scripts/postinstall.js",
     "db:generate-schema": "node scripts/generate-schema.js",
     "db:setup": "npm run db:generate-schema && prisma generate && prisma db push",
