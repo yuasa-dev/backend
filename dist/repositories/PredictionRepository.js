@@ -46,6 +46,8 @@ class PredictionRepository {
             tanana: p.tanana,
             renka: p.renka ? p.renka.split(',').map(Number).filter((n) => !isNaN(n)) : [],
             ana: p.ana ? p.ana.split(',').map(Number).filter((n) => !isNaN(n)) : [],
+            jiku: p.jiku ? p.jiku.split(',').map(Number).filter((n) => !isNaN(n)) : [],
+            osae: p.osae ? p.osae.split(',').map(Number).filter((n) => !isNaN(n)) : [],
             comment: p.comment,
         }));
     }
@@ -88,6 +90,8 @@ class PredictionRepository {
                 tanana: input.tanana,
                 renka: input.renka,
                 ana: input.ana,
+                jiku: input.jiku,
+                osae: input.osae,
                 comment: input.comment,
             },
         });
@@ -146,6 +150,8 @@ class PredictionRepository {
                     tanana: input.tanana,
                     renka: input.renka,
                     ana: input.ana,
+                    jiku: input.jiku,
+                    osae: input.osae,
                     comment: input.comment,
                 },
             });
@@ -160,6 +166,8 @@ class PredictionRepository {
                 tanana: input.tanana,
                 renka: input.renka,
                 ana: input.ana,
+                jiku: input.jiku,
+                osae: input.osae,
                 comment: input.comment,
             },
         });

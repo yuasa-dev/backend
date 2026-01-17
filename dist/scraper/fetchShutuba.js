@@ -83,9 +83,12 @@ async function fetchShutuba(raceId) {
     const html = iconv.decode(Buffer.from(buffer), 'EUC-JP');
     const $ = cheerio.load(html);
     const horses = [];
-    // 出馬表テーブルの各行を取得（.HorseListクラスを持つ行）
-    $('.HorseList').each((_, row) => {
+    // 出馬表テーブルの各行を取得
+    // HorseListクラスを持つ行（取消馬も含む）
+    $('tr[class*="HorseList"]').each((_, row) => {
         const $row = $(row);
+        // 取消馬かどうかを判定（Cancelクラスがある場合）
+        const isScratched = $row.hasClass('Cancel') || $row.find('.Cancel').length > 0;
         // 馬名を取得（馬名がなければスキップ）
         const horseName = $row.find('.HorseName a').first().text().trim();
         if (!horseName)
@@ -127,6 +130,7 @@ async function fetchShutuba(raceId) {
             weightDiff,
             age,
             sex,
+            scratched: isScratched,
         });
     });
     // 馬番順にソート
