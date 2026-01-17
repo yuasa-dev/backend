@@ -643,6 +643,12 @@ app.post('/api/races/:id/predictions', async (req, res) => {
     const { id } = req.params;
     const { groupId, honmei, taikou, tanana, renka, ana, jiku, osae, comment } = req.body;
 
+    // デバッグ: リクエストボディの内容を確認
+    console.log('=== Prediction Save Debug ===');
+    console.log('jiku:', jiku, 'type:', typeof jiku, 'isArray:', Array.isArray(jiku));
+    console.log('osae:', osae, 'type:', typeof osae, 'isArray:', Array.isArray(osae));
+    console.log('renka:', renka, 'type:', typeof renka, 'isArray:', Array.isArray(renka));
+
     // レース存在確認
     const race = await raceRepository.findById(id);
     if (!race) {
